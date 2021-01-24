@@ -127,8 +127,8 @@ if __name__ == "__main__":
         os.rename("PortScan.txt",newFic)
 
     # Cria ficheiro de log
-        ficipscan = open("PortScan.txt", "w")
-        ficipscan.write("Port Scanner \n")
+    ficipscan = open("PortScan.txt", "w")
+    ficipscan.write("Port Scanner \n")
 
     # Entrada de dados
     # Poderia ter incluído isto numa função ao invés da função principal
