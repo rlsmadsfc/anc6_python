@@ -1,205 +1,233 @@
 #!/usr/bin/python3
 #coding: utf-8
 
-# Este programa ainda tem muito por optimizar
-# O Objetivo foi demonstrar a navegação em um menu
-# Executar os comandos de operações em diretorias: mudar, criar, apagar, renomear e listar (apenas diretorias)
-
 # Importar bibliotecas
-import sys, os, time, datetime, platform, pathlib
+import sys, os, socket, time, datetime, subprocess, ipaddress, threading, concurrent.futures
+from queue import Queue
+from concurrent.futures import ThreadPoolExecutor
 
-# Função Lista Diretoria
-def listaDir(loopDef):
-    loopEspera = True
-    print("Lista atual de diretorias:\n")
-    listaDiretorias = [os.path.join(os.getcwd(), o) for o in os.listdir(os.getcwd()) if os.path.isdir(os.path.join(os.getcwd(), o))]
-    print(listaDiretorias)
-    if loopDef == 1:
-        while loopEspera:
-            escolhaDir = input("\nDigite 0 para regressar ao menu principal: ")
-            if escolhaDir == "0":
-                os.system('clear')
-                loopEspera = False
-            else:
-                loopEspera = True
 
-# Função Cria Diretoria
-def criaDir():
-    loopCria = True
-    escolhaDir = ""
-    os.system('clear')
-    print("Diretoria atual: " + os.getcwd())    
-    listaDir(0)
+# Definicão da Função Port Scanner
+def PortScanner(endIP, Porto):
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # criar um socket
+        resultado = sock.connect_ex((endIP, Porto)) # conectar socket ao destino
 
-    while loopCria:
-        escolhaDir = input("\nDigite a diretoria a criar nesta pasta ou 0 para sair: ")
-        if escolhaDir == "0":
-            os.system('clear')
-            loopCria = False
+        if resultado == 0: # validar se a porta está "open, filtered ou closed"
+            # Adiciona o Porto a lista de Portas abertas
+            ListaPortosAbertos.append(Porto)
+            with print_lock:
+                print("A porta " + str(Porto) + " está aberta") # imprimir resultado no ecrã
+            sock.close()
+            return True
         else:
-            direxiste=os.path.exists(escolhaDir)
-            if direxiste == False:
-                os.mkdir(escolhaDir)
-                print("\nDiretoria criada!\n")
-                listaDir(1)
-                os.system('clear')
-                loopCria = False
-            else:   
-                print("A diretoria " + escolhaDir +" já existe nesta pasta!")
-                loopCria = True
-                continue
+            # Adiciona o Porto a lista de Portas fechadas            
+            ListaPortosFechados.append(Porto)
+            with print_lock:
+                print("A porta " + str(Porto) + " está fechada") # imprimi resultado no ecrã
+            sock.close()
+            return False
 
-# Função remove diretoria
-def removeDir():
-    loopRemove = True
-    escolhaDir = ""
-    os.system('clear')
-    print("Diretoria atual: " + os.getcwd() +"\n")
-    listaDir(0)
-    
-    while loopRemove:
-        escolhaDir = input("\nDigite a diretoria a apagar nesta pasta ou 0 para sair: ")
-        if escolhaDir == "0":
-            loopRemove = False
-        else:
-            direxiste=os.path.exists(escolhaDir)
-            if direxiste == True:
-                dirAtual = os.getcwd()
-                os.chdir(escolhaDir)
-                dirApagar = os.getcwd()
-                if len(os.listdir(dirApagar)) == 0:
-                    os.chdir(dirAtual)
-                    os.rmdir(escolhaDir)
-                    print("\nDiretoria apagada!\n")
-                    listaDir(1)
-                    os.system('clear')
-                    loopRemove = False
-                else:
-                    print("\n\n*** A diretoria tem ficheiros e não pode ser removida! ***")
-                    print("*** Apague os ficheiros manualmente antes de apagar a diretoria***\n")
-                    os.chdir(dirAtual)
-                    listaDir(1)
-                    os.system('clear')
-                    loopRemove = False
-            else:   
-                print("A diretoria a apagar " + escolhaDir +" não existe nesta pasta!")
-                continue
- 
-# Função renomeia diretoria
-def renomeDir():
-    loopRenome = True
-    loopNova = True
-    escolhaDir = ""
-    novaDir = ""
-    os.system('clear')
-    print("Diretoria atual: " + os.getcwd() +"\n")
-    listaDir(0)
-    
-    while loopRenome:
-        escolhaDir = input("\nDigite a diretoria a renomear nesta pasta ou 0 para retornar ao menu principal: ")
-        if escolhaDir == "0":
-            loopRemove = False
-            return
-        else:
-            direxiste=os.path.exists(escolhaDir)
-            if direxiste == False:
-                print("A diretoria não existe e não pode ser renomeada.")
-                loopRenome = True
-            else:
-                loopRenome = False
+    except KeyboardInterrupt:
+        print("Programa terminado a pedido! Bye...")
+        print("Programa terminado a pedido! Bye...", file=ficipscan)
+        ficipscan.close()
+        sys.exit()
 
-    while loopNova:
-        novaDir= input("\nDigite o nome da nova diretoria ou 0 para retornar ao menu principal: ")
-        if novaDir == "0":
-           loopNova=False
-        else:
-            direxistenova=os.path.exists(novaDir)
-            if direxistenova == False:
-                os.rename(escolhaDir,novaDir)
-                print("\nDiretoria renomeada!\n")
-                listaDir(1)
-                loopNova = False
-                return
-            else:   
-                loopNova = True
-                continue
-    
-# Função muda diretoria
-def mudaDir():
-    loopMuda = True
-    escolhaDir = ""
-    os.system('clear')
-    print("Diretoria atual: " + os.getcwd() +"\n")
-    listaDir(0)
-    print("\n")
+    except socket.gaierror:
+        print("Endereco IP não foi resolvido")
+        print("Endereco IP não foi resolvido", file=ficipscan)
+        ficipscan.close()
+        sys.exit()
 
-    while loopMuda:
-        escolhaDir = input("\nDigite a diretoria destino ou 0 para retornar ao menu principal: ")
-        if escolhaDir == "0":
-            loopMuda = False
-        else:
-            direxiste=os.path.exists(escolhaDir)
-            if direxiste == False:
-                print("A diretoria pretendida não existe!")
-                loopMuda = True
-            else:
-                os.chdir(escolhaDir)
-                print("\nDiretoria atual é: " + os.getcwd() +"\n")
-                listaDir(1)
-                loopMuda = False
+    except socket.error:
+        print("Não foi possivel conectar ao IP")
+        print("Não foi possivel conectar ao IP", file=ficipscan)
+        ficipscan.close()
+        sys.exit()
+
+    except:
+        print("Ocorreu um erro inesperado!")
+        print("Ocorreu um erro inesperado na função Scanner!", file=ficipscan)
+        ficipscan.close()
+        sys.exit()
+
+# Definição da função valida endereço IP
+def valida_ip(endIP):
+   try:
+      # Verifica tipo de IP
+      ipTipo=type(ipaddress.ip_address(endIP))
+      print("", file=ficipscan)
+      print("Endereço IP: " + str(endIP), file=ficipscan)
+
+      if str(ipTipo).find("IPv4") != -1:
+         ipCateg = "IPv4"
+         print("É da classe IPv4")
+         print("É da classe IPv4", file=ficipscan)
+         return ipCateg, True
+
+      if str(ipTipo).find("IPv6") != -1:
+         ipCateg = "IPv6"
+         print("Este programa ainda não suporta testes ao IPv6")
+         print("Este programa ainda não suporta testes ao IPv6", file=ficipscan)
+         return ipCateg, False
+
+   except ValueError:
+      ipCateg = ""  
+      return ipCateg, False
+
+# Definição do worker para multi threading
+def worker():
+    while not queue.empty():
+        Porto = queue.get()
+        PortScanner(endIP,Porto)
+
+# Definição da função de threading
+def super_thread():
+    thread = threading.Thread(target=worker)
+    thread_list.append(thread)
 
 
-# Função define menu
-def menuDir():
-    print(30 * "-" , "MENU" , 30 * "-")
-    print("1. Lista diretoria")
-    print("2. Cria diretoria")
-    print("3. Remove diretoria")
-    print("4. Renomear diretoria")
-    print("5. Mudar diretoria")
-    print("6. Exit")
-    print(67 * "-")
-  
-    loop=True      
-  
 # Program principal #
 if __name__ == "__main__":
 
-    try:
-        # Definição de variáveis
-        loop = True
-        escolha = '0'
+    # Declaração de varíaveis e listas
+    queue = Queue()
+    ListaPortosAbertos = []
+    ListaPortosFechados = []
+    thread_list = []
 
-        # Limpar ecrã
-        os.system('clear')
-    
-        # Loop no menu para escolha de opções
-        while loop:
-            menuDir()
-            escolha = input("Digite a opção da operação: ")
-        
-            if escolha == "1":     
-                os.system('clear')
-                listaDir(1)
-            elif escolha == "2":
-                criaDir()
-            elif escolha == "3":
-                removeDir()
-            elif escolha == "4":
-                renomeDir()
-            elif escolha == "5":
-                mudaDir()
-            elif escolha == "6":
-                loop=False
-            else:
-                print(escolha)
-                print("Seleção incorreta. Tente novamente!")
+    # Faz o lock da thread durante a impressão para que se realize uma impressão limpa
+    print_lock = threading.Lock()
+
+    # Limpar ecrã
+    os.system('clear')
+    print("\n \nPressione Ctrl+c para interromper para interromper o programa \n \n")
+
+    # Criar diretoria em tmp
+    diretoria="/tmp/Scans"
+    direxiste=os.path.exists(diretoria)
+
+    # Valida se a diretoria já existe
+    if direxiste == False:
+        os.mkdir(diretoria)
+
+    # Muda para a diretoria pretendida
+    os.chdir(diretoria)
+
+    # Valida se ficheiro de log existe. Se existir renomeia
+    if os.path.exists("PortScan.txt"):
+        modTimeFic = os.path.getmtime("PortScan.txt")
+        newTime = time.strftime('%Y%m%d%H%M%S', time.localtime(modTimeFic))
+        newFic = "PortScan-" + newTime + ".txt"
+        os.rename("PortScan.txt",newFic)
+
+    # Cria ficheiro de log
+    ficipscan = open("PortScan.txt", "w")
+    ficipscan.write("Port Scanner \n")
+
+    # Entrada de dados
+    # Poderia ter incluído isto numa função ao invés da função principal
+    try:
+        while True:
+            endIP    = input("Digite o endereço IP: ")
+
+            print("A validar endereço IP! Aguarde por favor!")
+
+            # Chama função valida IP
+            ClasseIP,CondIP=valida_ip(endIP)
+       
+            if CondIP == True and ClasseIP == "IPv4":
+                print("Este IP é válido!")
+                ficipscan.write("Este IP é válido!")
+                IPteste = os.system("ping -c 1 " + endIP + " >/dev/null 2>&1")
+                if IPteste == 0:
+                    print("Está ativo e a responder aos pedidos!")
+                    ficipscan.write("Está a responder aos pedidos \n \n")
+                    break
+                else:
+                    print("Mas, não está a responder aos pedidos!")
+                    print("Tente novamente!")
+                    ficipscan.write(" Mas, não está a responder aos pedidos \n \n")
+                    continue
+            elif CondIP == False and ClasseIP == "IPv6":
                 continue
+            else:
+                print()
+                print("Este IP (" + endIP + ") nao é valido! Tente novamente!")
+                ficipscan.write("Este IP (" + endIP + ") não é válido \n \n")
+                continue
+
+        # Inicia Scan (regista inicio)
+        tinicio = time.time()
+        tinicioStr = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(tinicio))
+        ficipscan.write("Inicio do scan das portas: " + str(tinicioStr))
+
+        # Executa funcao de scan
+        thread_lock = threading.Lock()
+        for Porto in range(1, 65536):
+            queue.put(Porto)
+        
+        # O desempenho do programa depende de como se joga com duas variáveis: t_workers e t_threads
+        # O rácio entre workers e threads é mais ef# Faz o lock da thread durante a impressão para que se realize uma impressão limpa
+        # - um número menor de workers (ex. 10) e um número maior de threads (ex. 1000) - limitado sempre aos recurso de SO)
+        # - testes em uma rede local demonstraram se possível fazer o scan de 65535 portas em cerca de 25 segundos
+        t_workers = 10
+        t_threads = 1000
+
+        # Define um timeout para para o socket (0.25 mostrou-se suficiente para a maioria dos testes)
+        # Contudo, este pode impactar no tempo de execução do programa
+        t_socketTimeout = 0.25
+        socket.setdefaulttimeout(t_socketTimeout)
+        
+        # Executa ThreadPoolExecutor
+        with concurrent.futures.ThreadPoolExecutor(max_workers=t_workers) as executor:
+            for t in range(t_threads):
+                executor.submit(super_thread)
+
+        # Gestão das threads
+        for thread in thread_list:
+            thread.start()
+
+        for thread in thread_list:
+            thread.join()
 
     except KeyboardInterrupt:
         print("Program terminado a pedido! Bye...")
+        print("Program terminado a pedido! Bye...", file=ficipscan)
+        ficipscan.close()
         sys.exit()
     except:
-        print("Ups, ocorreu um erro inesperado!")
+        print("Ups, ocorreu um erro inesperado no programa principal!")
+        print("Ups, ocorreu um erro inesperado no programa principal!", file=ficipscan)
+        ficipscan.close()
         sys.exit()
+
+    # Termina scan
+    tfinal = time.time()
+    tfinalStr = time.strftime('%d-%m-%Y %H:%M:%S', time.localtime(tfinal))
+    ficipscan.write("\nFim do scan: " + str(tfinalStr) + "\n \n")
+
+    # Calcula o tempo de execução
+    ttotal = tfinal - tinicio
+    print(f"O Port Scanner foi executado em:  {ttotal} seg \n", file=ficipscan)
+    print(f"O Port Scanner foi executado em:  {ttotal} seg")
+        
+    # Ordena a lista de portos
+    ListaPortosAbertos.sort()
+    ListaPortosFechados.sort()
+    TotalPortos = len(ListaPortosAbertos) + len(ListaPortosFechados)
+
+    # Imprime resultados no ficheiro de log
+    print("Resultado do Scan para " + str(TotalPortos) + " portas: \n", file=ficipscan)
+        
+    for iPortosAbertos in ListaPortosAbertos:
+        print("A porta: " + str(iPortosAbertos) + " está aberta", file=ficipscan)
+
+    print("", file=ficipscan)
+    for iPortosFechados in ListaPortosFechados:
+        print("A porta: " + str(iPortosFechados) + " está fechada", file=ficipscan)
+    
+    # Fecha o ficheiro de log
+    ficipscan.close()
 
