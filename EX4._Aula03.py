@@ -11,7 +11,7 @@ import sys, os, time, datetime, platform, pathlib
 # Função Lista Diretoria
 def listaDir(loopDef):
     loopEspera = True
-    print("Lista atual de diretorias:\n")
+    print("Lista atual de diretorias:")
     listaDiretorias = [os.path.join(os.getcwd(), o) for o in os.listdir(os.getcwd()) if os.path.isdir(os.path.join(os.getcwd(), o))]
     print(listaDiretorias)
     if loopDef == 1:
@@ -29,6 +29,7 @@ def criaDir():
     escolhaDir = ""
     os.system('clear')
     print("Diretoria atual: " + os.getcwd())    
+    print("\n")
     listaDir(0)
 
     while loopCria:
@@ -55,6 +56,7 @@ def removeDir():
     escolhaDir = ""
     os.system('clear')
     print("Diretoria atual: " + os.getcwd() +"\n")
+    print("\n")
     listaDir(0)
     
     while loopRemove:
@@ -64,23 +66,11 @@ def removeDir():
         else:
             direxiste=os.path.exists(escolhaDir)
             if direxiste == True:
-                dirAtual = os.getcwd()
-                os.chdir(escolhaDir)
-                dirApagar = os.getcwd()
-                if len(os.listdir(dirApagar)) == 0:
-                    os.chdir(dirAtual)
-                    os.rmdir(escolhaDir)
-                    print("\nDiretoria apagada!\n")
-                    listaDir(1)
-                    os.system('clear')
-                    loopRemove = False
-                else:
-                    print("\n\n*** A diretoria tem ficheiros e não pode ser removida! ***")
-                    print("*** Apague os ficheiros manualmente antes de apagar a diretoria***\n")
-                    os.chdir(dirAtual)
-                    listaDir(1)
-                    os.system('clear')
-                    loopRemove = False
+                os.rmdir(escolhaDir)
+                print("\nDiretoria apagada!\n")
+                listaDir(1)
+                os.system('clear')
+                loopRemove = False
             else:   
                 print("A diretoria a apagar " + escolhaDir +" não existe nesta pasta!")
                 continue
@@ -93,13 +83,13 @@ def renomeDir():
     novaDir = ""
     os.system('clear')
     print("Diretoria atual: " + os.getcwd() +"\n")
+    print("\n")
     listaDir(0)
     
     while loopRenome:
         escolhaDir = input("\nDigite a diretoria a renomear nesta pasta ou 0 para retornar ao menu principal: ")
         if escolhaDir == "0":
             loopRemove = False
-            return
         else:
             direxiste=os.path.exists(escolhaDir)
             if direxiste == False:
@@ -118,11 +108,11 @@ def renomeDir():
                 os.rename(escolhaDir,novaDir)
                 print("\nDiretoria renomeada!\n")
                 listaDir(1)
+                os.system('clear')
                 loopNova = False
-                return
             else:   
+                print("A diretoria a renomear " + escolhaDir +" já existe nesta pasta!")
                 loopNova = True
-                continue
     
 # Função muda diretoria
 def mudaDir():
@@ -146,6 +136,8 @@ def mudaDir():
                 os.chdir(escolhaDir)
                 print("\nDiretoria atual é: " + os.getcwd() +"\n")
                 listaDir(1)
+                # time.sleep(5)
+                os.system('clear')
                 loopMuda = False
 
 
