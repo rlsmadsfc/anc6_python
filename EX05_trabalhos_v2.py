@@ -71,9 +71,6 @@ if __name__ == "__main__":
             print("\nO alfabeto ordenado de z-a (decrescente): " + str(listaAlfabeto))
         else:
             print("\nO alfabeto ordenado de a-z (crescente): " + str(listaAlfabeto))
-        # Valida se as letras estão lado a lado. Se sim, imprime as letras em maiúsculas para diferenciar do alfabeto
-        # Se não estiverem próximas, avança para os próximos passos
-
         # Cria indexadores
         index1 = listaAlfabeto.index(letras[0])
         index2 = listaAlfabeto.index(letras[1])
@@ -82,6 +79,8 @@ if __name__ == "__main__":
         for i in range(index1, index2+1):
             string1 = string1+listaAlfabeto[i]
 
+        # Valida se as letras estão lado a lado. Se sim, imprime as letras em maiúsculas para diferenciar do alfabeto
+        # Se não estiverem próximas, avança para os próximos passos
         if index2 - index1 == 1:
             print("\nAs letras são próximas e não há uma letra central. Ver abaixo as letras em maiúsculas:")
             output=listaAlfabeto
