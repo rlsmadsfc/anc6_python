@@ -26,8 +26,8 @@ if __name__ == "__main__":
         soma15 = 0
         soma35 = 0
     
-        # Condição de 1 a 1001
-        for numero in range(1, 1001):
+        # Condição de 1 a 1000
+        for numero in range(1, 1000):
 
             if numero % 3== 0 and numero % 5 == 0:
                 soma35 = soma35 + numero
